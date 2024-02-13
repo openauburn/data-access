@@ -5,7 +5,7 @@ FROM elixir:1.14.4-slim
 
 ENV APP_NAME=data_access_api
 ENV MIX_ENV=prod
-ENV PORT=4000
+ENV PORT=8080
 
 
 EXPOSE ${PORT}
@@ -18,7 +18,7 @@ WORKDIR /source
 
 RUN mix local.hex --force \
   && mix local.rebar --force
-
+400
 COPY mix.exs mix.lock config ./
 
 RUN mix do deps.get, deps.compile
