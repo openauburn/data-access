@@ -18,7 +18,7 @@ WORKDIR /source
 
 RUN mix local.hex --force \
   && mix local.rebar --force
-  
+
 COPY mix.exs mix.lock config ./
 
 RUN mix do deps.get, deps.compile
@@ -28,7 +28,8 @@ RUN mix do deps.get, deps.compile
 # -----------------------
 
 COPY . .
-RUN mix do compile, phx.digest
+RUN mix do compile
+RUN mix phx.digest
 RUN mix release
 
 
