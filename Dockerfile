@@ -7,7 +7,6 @@ ENV APP_NAME=data_access_api
 ENV MIX_ENV=prod
 ENV PORT=8080
 
-
 EXPOSE ${PORT}
 
 
