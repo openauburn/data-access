@@ -1,7 +1,7 @@
 defmodule DataAccessApiWeb.Logging do
-  alias DataAccessApiWeb.InternalAgent, as: InternalAgent
+  # alias DataAccessApiWeb.InternalAgent, as: InternalAgent
 
-  def init(default), do: nil
+  def init(_default), do: nil
 
   def call(conn, _params) do
     # IO.puts("Logging")

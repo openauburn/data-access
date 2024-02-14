@@ -15,7 +15,7 @@ defmodule DataAccessApiWeb.InternalAgent do
   def log_request(conn) do
     IO.puts "in ia"
 
-    [status, response] = DAO.build_gen_write_sql(
+    [status, _response] = DAO.build_gen_write_sql(
       "requests",
       [%{src_ip: conn.remote_ip |> Tuple.to_list |> Enum.join("."),
        method: conn.method,
@@ -29,7 +29,7 @@ defmodule DataAccessApiWeb.InternalAgent do
     IO.inspect status
   end
 
-  def log_error(error) do
+  def log_error(_error) do
     # insert request
     # if error, use request_id to insert error
   end

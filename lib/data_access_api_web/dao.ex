@@ -35,12 +35,12 @@ defmodule DAO do
 
   def build_gen_write_sql(table, objects) do
 
-    num_objects = length(objects)
+    _num_objects = length(objects)
 
     fields = Enum.at(objects, 0) |> Map.keys |> Enum.join(", ")
 
     all_values = objects |> Enum.map(fn o ->
-      values = "(#{Map.values(o) |> Enum.map(fn v -> "'#{v}'" end) |> Enum.join(", ")})"
+      _values = "(#{Map.values(o) |> Enum.map(fn v -> "'#{v}'" end) |> Enum.join(", ")})"
       #values = if num_objects > 1, do: "(#{values})", else: values
     end)
       |> Enum.join(",\n")
