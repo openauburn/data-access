@@ -25,11 +25,7 @@ config :data_access_api, DataAccessApiWeb.Endpoint,
   code_reloader: true,
   debug_errors: true,
   keep_alive: false,
-  secret_key_base: "340petPy96U+PmpsHrE4x8J6d0gg8KFYwCnZwr8PCvSXZ/hrrJuCu0Gbc7Dm1cBG",
-  watchers: [
-    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]}
-  ]
+  secret_key_base: "340petPy96U+PmpsHrE4x8J6d0gg8KFYwCnZwr8PCvSXZ/hrrJuCu0Gbc7Dm1cBG"
 
 # ## SSL Support
 #

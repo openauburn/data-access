@@ -17,7 +17,7 @@ defmodule DataAccessApiWeb do
   those modules here.
   """
 
-  def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
+  def static_paths, do: ~w(favicon.ico robots.txt)
 
   def router do
     quote do
@@ -39,13 +39,11 @@ defmodule DataAccessApiWeb do
   def controller do
     quote do
       use Phoenix.Controller,
-        formats: [:html, :json],
-        layouts: [html: DataAccessApiWeb.Layouts]
-
+        formats: [:json]
       import Plug.Conn
       import DataAccessApiWeb.Gettext
 
-      unquote(verified_routes())
+      # unquote(verified_routes())
     end
   end
 
