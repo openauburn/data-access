@@ -27,8 +27,8 @@ RUN mix do deps.get, deps.compile
 # -----------------------
 
 COPY . .
-RUN mix do compile
 RUN mix phx.digest
+RUN mix do compile
 RUN mix release
 
 

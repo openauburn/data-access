@@ -31,6 +31,11 @@ data_access_api-*.tar
 # Ignore digested assets cache.
 /priv/static/cache_manifest.json
 
+/priv/static/images/logo-*
+/priv/static/favicon-*
+/priv/static/robots-*
+**.gz
+
 # In case you use Node.js/npm, you want to ignore these.
 npm-debug.log
 /assets/node_modules/
@@ -41,3 +46,4 @@ npm-debug.log
 map.txt
 
 .elixir_ls
+run.sh
