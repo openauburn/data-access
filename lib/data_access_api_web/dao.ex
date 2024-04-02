@@ -4,7 +4,7 @@ defmodule DAO do
     reserved_params = ["show", "page", "page_size", "sort"]
 
     # show=f1,f2,f3,f4...
-    select_fields = params |> Map.get("show", "[*]") |> String.slice(1..-2)
+    select_fields = params |> Map.get("show", "[*]") |> String.slice(1..-2//1)
 
     # f1=v1,v2&f2=v2...
     fields = Util.reduce_map_by_keys(params, reserved_params)
@@ -12,7 +12,7 @@ defmodule DAO do
     fields = fields |> Enum.map(
       fn {k,v} ->
         v = if String.at(v, 0) == "[" and String.at(v, -1) == "]" do
-          v = String.slice(v, 1..-2)
+          v = String.slice(v, 1..-2//1)
           # check for brackets, then split on str
           v |> String.split(",") |> Enum.map(fn s -> "'#{s}'" end) |> Enum.join(", ")
         else
@@ -53,9 +53,44 @@ defmodule DAO do
     sql
   end
 
+  def append_metadata_read_update_sql(sql, table) do
+
+    datetime_cst = DateTime.now("America/Chicago", Tz.TimeZoneDatabase)
+      |> elem(1)
+      |> DateTime.to_string
+    IO.puts datetime_cst
+
+    sql <> " " <> """
+    UPDATE metadata
+      SET requests = requests + 1
+    WHERE title = '#{String.slice(table, 3..-1//1)}';
+    """
+
+    sql
+  end
+
+  def append_metadata_write_update_sql(sql, table, objects, method) do
+
+    # # need to distinguish
+    # # - when we're generally retrieving data (just request update + request logs)
+    # # - when we're adding / removing / putting data (updated_at, and records based on method)
+
+    datetime_cst = DateTime.now("America/Chicago", Tz.TimeZoneDatabase)
+      |> elem(1)
+      |> DateTime.to_string
+    IO.puts datetime_cst
+
+    sql <> " " <> """
+    UPDATE metadata
+      SET updated_at = #{datetime_cst}
+      #{if method == :add, do: "SET records = records + #{Kernel.map_size(objects)}"}
+      #{if method == :delete, do: "SET records = records - #{Kernel.map_size(objects)}"}
+    WHERE title = '#{String.slice(table, 3..-1//1)}';
+    """
+  end
+
 
   def build_request_log_sql(conn) do
-    IO.puts "in dao"
     src_ip = conn.remote_ip |> Tuple.to_list |> Enum.join(".")
     method = conn.method
     endpoint = conn.request_path
@@ -94,7 +129,7 @@ defmodule DAO do
     sql = """
     #{sql}ORDER BY #{sort_field} #{sort_order}
     OFFSET #{offset}
-    LIMIT #{limit}
+    LIMIT #{limit};
     """
 
     sql

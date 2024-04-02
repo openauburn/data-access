@@ -8,7 +8,7 @@ config :data_access_api, DataAccessApi.Repo,
   database: System.get_env("PSQL_DB"),
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
-  pool_size: 10,
+  pool_size: 5,
   timeout: 15000
 
 # For development, we disable any cache and enable
