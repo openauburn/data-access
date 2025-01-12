@@ -24,7 +24,7 @@ defmodule DAO do
       |> Enum.join(" AND ")
     fields = if fields == "", do: "TRUE", else: fields
 
-    sql = """
+    sql =  """
     SELECT #{select_fields}
     FROM #{table}
     WHERE #{fields}
@@ -48,23 +48,33 @@ defmodule DAO do
     sql = """
     INSERT INTO #{table}(#{fields})
     values#{all_values}
+    ON CONFLICT (#{fields}) DO NOTHING
     RETURNING *
     """
     sql
   end
 
-  def append_metadata_read_update_sql(sql, table) do
+  def append_metadata_read_update_sql(table) do
 
     datetime_cst = DateTime.now("America/Chicago", Tz.TimeZoneDatabase)
       |> elem(1)
       |> DateTime.to_string
     IO.puts datetime_cst
-
-    sql <> " " <> """
+    title = table
+      |> String.slice(3..-1//1)        # Skip the first 3 characters
+      |> String.replace("_", " ")    # Replace underscores with spaces
+      |> String.split()             # Split the string into words
+      |> Enum.map(&String.capitalize/1)  # Capitalize each word
+      |> Enum.join(" ")
+    # String.slice(table, 3..-1//1
+    IO.puts ">>>>>>>>>>>>>>>>>>>>. #{title}"
+    sql = " " <> """
     UPDATE metadata
       SET requests = requests + 1
-    WHERE title = '#{String.slice(table, 3..-1//1)}';
+    WHERE title = '#{title}'
+    RETURNING NULL;
     """
+    IO.puts("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,#{sql}")
 
     sql
   end
@@ -136,7 +146,7 @@ defmodule DAO do
   end
 
   def query(sql, ext_err_message) do
-    IO.puts sql
+    IO.puts "QUERY>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.#{sql}"
     [status, response] = try do
       {:ok, result} = Ecto.Adapters.SQL.query(DataAccessApi.Repo, sql, [])
       data =
