@@ -21,7 +21,7 @@ defmodule DataAccessApiWeb.OpenAgent do
   end
 
   def metadata_read_update(table) do
-      DAO.append_metadata_read_update_sql(table)
+      DAO.build_metadata_read_update_sql(table)
         |> DAO.query("Error updating metadata.")
   end
 end
