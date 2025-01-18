@@ -4,7 +4,11 @@ defmodule DataAccessApiWeb.InternalAgent do
   def add_data(dataset, conn) do
     data = conn.body_params["_json"]
     IO.inspect data
+
     [status, response] = DAO.build_gen_write_sql(dataset, data) |> DAO.query("Error while adding data.")
+
+    DAO.build_metadata_write_update_sql(dataset, data, :add)
+    |> DAO.query("Error updating metadata.")
 
     json = Jason.encode!(response)
 

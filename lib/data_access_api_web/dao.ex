@@ -24,7 +24,7 @@ defmodule DAO do
       |> Enum.join(" AND ")
     fields = if fields == "", do: "TRUE", else: fields
 
-    sql = """
+    sql =  """
     SELECT #{select_fields}
     FROM #{table}
     WHERE #{fields}
@@ -39,37 +39,86 @@ defmodule DAO do
 
     fields = Enum.at(objects, 0) |> Map.keys |> Enum.join(", ")
 
-    all_values = objects |> Enum.map(fn o ->
-      _values = "(#{Map.values(o) |> Enum.map(fn v -> "'#{v}'" end) |> Enum.join(", ")})"
-      #values = if num_objects > 1, do: "(#{values})", else: values
+    # all_values = objects |> Enum.map(fn o ->
+    #   _values = "(#{Map.values(o) |> Enum.map(fn v -> "'#{v}'" end) |> Enum.join(", ")})"
+
+    # end)
+    #   |> Enum.join(",\n")
+    all_values = objects
+    |> Enum.map(fn o ->
+      _values = o
+      |> Map.values()
+      |> Enum.map(fn
+        nil ->
+          # Handle nil values, replace with NULL
+          "NULL"
+
+        v when is_list(v) ->
+          # Handle arrays: format elements and escape quotes
+          "ARRAY[#{Enum.map(v, &"'#{String.replace(&1, "'", "''")}'") |> Enum.join(", ")}]"
+
+        v when is_binary(v) ->
+          # If it's a string and not all digits, replace single quotes with double quotes
+          if String.match?(v, ~r/^\d+$/) do
+            "'#{v}'"  # If it's all digits, leave it as is
+          else
+            "'#{String.replace(v, "'", "''")}'"  # Otherwise, escape single quotes
+          end
+
+        v ->
+          # For other types, convert to string (e.g., integers)
+          to_string(v)
+      end)
+      |> Enum.join(", ")  # Join all values with commas
+
+      "(#{_values})"  # Wrap values in parentheses
     end)
-      |> Enum.join(",\n")
+    |> Enum.join(",\n")  # Join all rows with new lines
+
+
+
 
     sql = """
     INSERT INTO #{table}(#{fields})
     values#{all_values}
+    ON CONFLICT (#{fields}) DO NOTHING
     RETURNING *
     """
+    case File.write("testinst.sql", sql) do
+      :ok ->
+        IO.puts("File written successfully.")
+      {:error, reason} ->
+        IO.puts("Failed to write to the file: #{reason}")
+    end
+
     sql
   end
 
-  def append_metadata_read_update_sql(sql, table) do
+  def build_metadata_read_update_sql(table) do
 
     datetime_cst = DateTime.now("America/Chicago", Tz.TimeZoneDatabase)
       |> elem(1)
       |> DateTime.to_string
     IO.puts datetime_cst
-
-    sql <> " " <> """
+    title = table
+      |> String.slice(3..-1//1)        # Skip the first 3 characters
+      |> String.replace("_", " ")    # Replace underscores with spaces
+      |> String.split()             # Split the string into words
+      |> Enum.map(&String.capitalize/1)  # Capitalize each word
+      |> Enum.join(" ")
+    IO.puts ">>>>>>>>>>>>>>>>>>>>. #{title}"
+    sql = """
     UPDATE metadata
       SET requests = requests + 1
-    WHERE title = '#{String.slice(table, 3..-1//1)}';
+    WHERE title = '#{title}'
+    RETURNING NULL;
     """
+    IO.puts("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,#{sql}")
 
     sql
   end
 
-  def append_metadata_write_update_sql(sql, table, objects, method) do
+  def build_metadata_write_update_sql(table, objects, method) do
 
     # # need to distinguish
     # # - when we're generally retrieving data (just request update + request logs)
@@ -80,13 +129,22 @@ defmodule DAO do
       |> DateTime.to_string
     IO.puts datetime_cst
 
-    sql <> " " <> """
-    UPDATE metadata
-      SET updated_at = #{datetime_cst}
-      #{if method == :add, do: "SET records = records + #{Kernel.map_size(objects)}"}
-      #{if method == :delete, do: "SET records = records - #{Kernel.map_size(objects)}"}
-    WHERE title = '#{String.slice(table, 3..-1//1)}';
+    title = table
+      |> String.slice(3..-1//1)        # Skip the first 3 characters
+      |> String.replace("_", " ")    # Replace underscores with spaces
+      |> String.split()             # Split the string into words
+      |> Enum.map(&String.capitalize/1)  # Capitalize each word
+      |> Enum.join(" ")
+
+    sql = """
+      UPDATE metadata
+      SET updated_at = CURRENT_TIMESTAMP,
+          records = (SELECT COUNT(*) FROM #{table})
+      WHERE title = '#{title}'
+      RETURNING NULL;
     """
+    IO.puts(sql)
+    sql
   end
 
 
@@ -136,7 +194,7 @@ defmodule DAO do
   end
 
   def query(sql, ext_err_message) do
-    IO.puts sql
+    IO.puts "QUERY>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.#{sql}"
     [status, response] = try do
       {:ok, result} = Ecto.Adapters.SQL.query(DataAccessApi.Repo, sql, [])
       data =
