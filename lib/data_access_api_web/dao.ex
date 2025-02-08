@@ -20,7 +20,6 @@ defmodule DAO do
         end
         "#{k} IN " <> Enum.join(["(", ")"], v)
       end)
-      # tags && ARRAY['meep']
       |> Enum.join(" AND ")
     fields = if fields == "", do: "TRUE", else: fields
 
