@@ -44,6 +44,15 @@ defmodule DataAccessApiWeb.Router do
 
   end
 
+  # Showcase
+  scope "/showcase", DataAccessApiWeb do
+    pipe_through :api
+
+    get "/", ShowcaseController, :get_showcase_all
+    get "/:showcase_id", ShowcaseController, :get_showcase_one
+
+  end
+
   # Collections
   scope "/collections", DataAccessApiWeb do
     pipe_through :api
